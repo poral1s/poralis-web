@@ -1,5 +1,6 @@
 <script lang="ts">
 export default {
+  // eslint-disable-next-line vue/multi-word-component-names
   name: 'Navbar',
 }
 </script>
@@ -9,15 +10,8 @@ export default {
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container">
         <RouterLink class="navbar-brand" to="/"> Poralis</RouterLink>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+          aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
 
