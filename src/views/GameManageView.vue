@@ -1,6 +1,9 @@
 <script lang="ts">
+import axios from 'axios'
 
 type Player = {
+    // 課題割り当てフラグ
+    isAssigned: boolean
     name: string
     startPoint: string
     startPointUrl: string
@@ -10,15 +13,34 @@ type Player = {
     defaultHint2: string
     defaultHint3: string
 }
+type Admin = {
+    isAssigned: boolean
+    name: string
+}
+
 type GameManageViewData = {
-    allPlayers: string[]
-    allAdmins: string[]
+    fetchedPlayers: string[]
+    fetchedAdmins: string[]
     name: string
     schedule: string
     meetingPoint: string
-    selectedPlayers: Player[]
-    selectedAdmins: string[]
+    players: Player[]
+    admins: Admin[]
     query: Query | unknown
+}
+
+type Course = {
+    name: string
+    player: string
+    startPoint: {
+        name: string
+        url: string
+    }
+    goalPoint: {
+        name: string
+        url: string
+    }
+
 }
 
 type Query = {
@@ -35,34 +57,22 @@ type Query = {
         // id: number
         name: string
     }[],
-    courses:
-    {
-        name: string
-        player: string
-        startPoint: {
-            name: string
-            url: string
-        }
-        goalPoint: {
-            name: string
-            url: string
-        }
-    }[],
+    courses: Course[],
 }
 
 export default {
     data(): GameManageViewData {
         return {
             // 仮の値 (API から取得する情報を想定)
-            allPlayers: ["testplayer1", "testplayer2"],
-            allAdmins: ["testadmin1", "testadmin2"],
+            fetchedPlayers: ["testplayer1", "testplayer2"],
+            fetchedAdmins: ["testadmin1", "testadmin2"],
 
             // フォーム入力値
             name: '',
             schedule: '',
             meetingPoint: '',
-            selectedPlayers: [],
-            selectedAdmins: [],
+            players: [],
+            admins: [],
             // API送信クエリ
             query: {}
         }
@@ -70,52 +80,64 @@ export default {
     methods: {
         handleRegisterGame() {
             console.log("register")
-            console.log()
-            const courses = []
-            this.selectedPlayers.forEach(player => {
-                const course = {
-                    name: player.name + "の課題",
-                    player: player.name,
-                    startPoint: {
-                        name: player.startPoint,
-                        url: player.startPointUrl
-                    },
-                    goalPoint: {
-                        name: player.goalPoint,
-                        url: player.goalPointUrl
-                    },
-                    hints: [
-                        {
-                            name: "デフォルトヒント1",
-                            content: player.defaultHint1
+            const courses: Course[] = []
+            this.players.forEach(player => {
+                if (player.isAssigned == true) {
+                    const course = {
+                        name: player.name + "の課題",
+                        player: player.name,
+                        startPoint: {
+                            name: player.startPoint,
+                            url: player.startPointUrl
                         },
-                        {
-                            name: "デフォルトヒント2",
-                            content: player.defaultHint2
+                        goalPoint: {
+                            name: player.goalPoint,
+                            url: player.goalPointUrl
                         },
-                        {
-                            name: "デフォルトヒント3",
-                            content: player.defaultHint3
-                        }
-                    ]
+                        hints: [
+                            {
+                                name: "デフォルトヒント1",
+                                content: player.defaultHint1
+                            },
+                            {
+                                name: "デフォルトヒント2",
+                                content: player.defaultHint2
+                            },
+                            {
+                                name: "デフォルトヒント3",
+                                content: player.defaultHint3
+                            }
+                        ]
+                    }
+                    courses.push(course)
                 }
-                courses.push(course)
+
             });
-            // this.query = {
-            //     name: this.name,
-            //     date: this.date,
-            //     players: [],
-            //     admins: this.selectedAdmins,
-            //     courses: courses
-            // }
+            this.query = {
+                name: this.name,
+                date: this.schedule,
+                players: [],
+                admins: this.admins,
+                courses: courses
+            }
             // ここでAPIへPOSTする
             console.log(this.query)
+            const baseurl = import.meta.env.VITE_API_URL
+            const url = baseurl + "/games"
+            axios.post(url, this.query)
+                .then((res) => {
+                    console.log(res)
+                })
+                .then((err) => {
+                    console.log(err)
+                })
         }
     },
     mounted() {
         // API から取得したプレイヤーに対し、課題情報を一時的に紐づけておく
-        this.allPlayers.forEach(player => {
+        this.fetchedPlayers.forEach(player => {
             const newPlayer = {
+                isAssigned: false,
                 name: player,
                 startPoint: "",
                 startPointUrl: "",
@@ -125,9 +147,16 @@ export default {
                 defaultHint2: "",
                 defaultHint3: ""
             }
-            this.selectedPlayers.push(newPlayer)
+            this.players.push(newPlayer)
         });
-        console.log(this.selectedPlayers)
+        this.fetchedAdmins.forEach(admin => {
+            const newAdmin = {
+                isAssigned: false,
+                name: admin
+            }
+            this.admins.push(newAdmin)
+        })
+        console.log(this.players)
     },
 }
 </script>
@@ -155,27 +184,27 @@ export default {
             </div>
             <div class="mb-3">
                 <label class="form-label">参加プレイヤー</label>
-                <div class="form-check" v-for="(player, index) in allPlayers" v-bind:key="index">
-                    <input v-model="selectedPlayers[index]" class="form-check-input" type="checkbox" :value="player">
+                <div class="form-check" v-for="(player, index) in players" v-bind:key="index">
+                    <input v-model="player.isAssigned" class="form-check-input" type="checkbox">
                     <label class="form-check-label">
-                        {{ player }}
+                        {{ player.name }}
                     </label>
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label">自分以外のゲームマスター</label>
-                <div class="form-check" v-for="(admin, index) in allAdmins" v-bind:key="index">
-                    <input v-model="selectedAdmins" class="form-check-input" type="checkbox" :value="admin">
+                <div class="form-check" v-for="(admin, index) in admins" v-bind:key="index">
+                    <input v-model="admin.isAssigned" class="form-check-input" type="checkbox">
                     <label class="form-check-label">
-                        {{ admin }}
+                        {{ admin.name }}
                     </label>
                 </div>
             </div>
-            <div v-if="selectedPlayers.length > 1">
-                <h4>ゲーム課題登録</h4>
-                <p>各プレイヤーに割り当てるゲーム課題を入力します。</p>
 
-                <div v-for="(player, index) in selectedPlayers" v-bind:key="index">
+            <div v-for="(player, index) in players" v-bind:key="index">
+                <template v-if="player.isAssigned === true">
+                    <h4>ゲーム課題登録</h4>
+                    <p>各プレイヤーに割り当てるゲーム課題を入力します。</p>
                     <h5>{{ player.name }} の課題</h5>
 
                     <!-- <div class="mb-3">
@@ -213,9 +242,11 @@ export default {
                         <label class="form-label">デフォルトヒント3</label>
                         <input type="text" v-model="player.defaultHint3" class="form-control">
                     </div>
-                </div>
+                </template>
+
 
             </div>
+
 
             <div class="mb-3">
                 <button type="submit" class="btn btn-primary">ゲーム登録</button>

@@ -9,7 +9,7 @@ export default {
   <div class="wrapper">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container">
-        <RouterLink class="navbar-brand" to="/"> Poralis</RouterLink>
+        <RouterLink class="navbar-brand" to="/"> Poralis-web </RouterLink>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
           aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -21,7 +21,7 @@ export default {
               <RouterLink class="nav-link" to="/game"> ゲーム一覧 </RouterLink>
             </li>
             <li class="nav-item">
-              <RouterLink class="nav-link" to="/game-manage"> ゲーム管理 </RouterLink>
+              <RouterLink class="nav-link" to="/game-manage"> 新規ゲーム登録 </RouterLink>
             </li>
           </ul>
         </div>
